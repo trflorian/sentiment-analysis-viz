@@ -3,7 +3,14 @@ name = "sentiment-analysis-viz"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
+    "numpy>=2.2.2",
+    "torch>=2.5.1",
     "transformers>=4.48.1",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true

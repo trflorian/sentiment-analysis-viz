@@ -3,11 +3,16 @@ name = "sentiment-analysis-viz"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
+    "customtkinter>=5.2.2",
+    "fastapi>=0.115.7",
     "numpy>=2.2.2",
+    "opencv-python>=4.11.0.86",
+    "pillow>=11.1.0",
     "torch>=2.5.1",
     "transformers>=4.48.1",
+    "uvicorn[standard]>=0.34.0",
 ]
 
 [[tool.uv.index]]

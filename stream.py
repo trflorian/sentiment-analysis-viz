@@ -1,3 +1,4 @@
+import logging
 import threading
 import cv2
 
@@ -18,11 +19,12 @@ MODE_CANNY = 2
 class App(customtkinter.CTk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.logger = logging.getLogger(__name__)
 
         self.title("Webcam Stream")
         self.geometry("800x600")
 
-        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure((0, 1), weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=0)
 
@@ -32,7 +34,6 @@ class App(customtkinter.CTk):
         self.frame_queue = queue.LifoQueue(maxsize=2)
         self.stop_event = threading.Event()
 
-        # --- Widgets ---
         self.image_display = CTkImageDisplay(self, width=640, height=480)
         self.image_display.grid(
             row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew"
@@ -53,10 +54,9 @@ class App(customtkinter.CTk):
             command=self._update_mode,
         )
 
-        self.radiobutton_normal.grid(row=1, column=0, padx=(10, 5), pady=10, sticky="e")
-        self.radiobutton_canny.grid(row=1, column=1, padx=(5, 10), pady=10, sticky="w")
+        self.radiobutton_normal.grid(row=1, column=0, padx=(10, 5), pady=20, sticky="e")
+        self.radiobutton_canny.grid(row=1, column=1, padx=(5, 10), pady=20, sticky="w")
 
-        # --- Worker Thread ---
         self.video_thread = threading.Thread(
             target=self._video_capture_loop,
             args=(self.frame_queue, self.stop_event),
@@ -64,22 +64,20 @@ class App(customtkinter.CTk):
         )
         self.video_thread.start()
 
-        # --- Start GUI Queue Checker ---
-        self.after(QUEUE_CHECK_DELAY_MS, self.check_queue)
+        self.check_queue()
 
-        # --- Shutdown Protocol ---
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def _update_mode(self):
         """Callback when radio button changes to update local mode."""
         self._current_mode = self.radio_var.get()
-        print(
+        self.logger.info(
             f"Mode changed to: {'Canny' if self._current_mode == MODE_CANNY else 'Normal'}"
         )
 
     def _video_capture_loop(self, frame_q: queue.Queue, stop_signal: threading.Event):
         """Function running in the worker thread to capture video frames."""
-        print("Video thread started.")
+        self.logger.info("Video thread started.")
         cap = cv2.VideoCapture(0)
 
         while not stop_signal.is_set():
@@ -87,12 +85,16 @@ class App(customtkinter.CTk):
             if not ret:
                 raise RuntimeError("Failed to read frame from camera.")
 
-            frame_q.put(frame)
+            try:
+                frame_q.put_nowait(frame)
+            except queue.Full:
+                # Queue is full, drop the oldest frame
+                pass
 
         # --- Cleanup ---
-        print("Video thread received stop signal. Releasing camera...")
+        self.logger.info("Video thread received stop signal. Releasing camera...")
         cap.release()
-        print("Camera released in worker thread.")
+        self.logger.info("Camera released in worker thread.")
 
     def check_queue(self):
         """Periodically checks the queue for new frames from the worker thread."""
@@ -115,20 +117,25 @@ class App(customtkinter.CTk):
 
     def on_closing(self) -> None:
         """Handles window closing event."""
-        print("Closing application...")
+        self.logger.info("Closing application...")
         self.stop_event.set()
 
-        print("Waiting for video thread to finish...")
-        self.video_thread.join(timeout=1.0)  # Wait up to 1 second
+        self.logger.info("Waiting for video thread to finish...")
+        self.video_thread.join(timeout=0.1)
         if self.video_thread.is_alive():
-            print("Warning: Video thread did not finish cleanly.")
+            self.logger.warning("Warning: Video thread did not finish cleanly.")
 
         self.destroy()
-        print("Application closed.")
+        self.logger.info("Application closed.")
 
 
 # --- Main Execution ---
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
     customtkinter.set_appearance_mode("System")
     customtkinter.set_default_color_theme("blue")
 

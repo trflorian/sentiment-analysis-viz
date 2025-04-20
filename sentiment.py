@@ -7,7 +7,7 @@ import numpy as np
 from ctk_image_display import CTkImageDisplay
 
 
-QUEUE_CHECK_DELAY_MS = 30
+from transformers import pipeline
 
 
 def color_hsv_to_bgr(
@@ -108,6 +108,19 @@ class App(customtkinter.CTk):
         self.title("Sentiment Analysis")
         self.geometry("800x600")
 
+        self.sentiment_pipeline = pipeline(
+            "sentiment-analysis",
+            model="cardiffnlp/twitter-roberta-base-sentiment",
+            device=0,
+            top_k=3,
+        )
+        self.label_mapping = {
+            "LABEL_0": -1,
+            "LABEL_1": 0,
+            "LABEL_2": 1,
+        }
+        self.sentiment_image = None
+
         self.sentiment_text_var = customtkinter.StringVar(master=self, value="Love")
         self.sentiment_text_var.trace_add("write", self._on_text_change)
 
@@ -142,8 +155,19 @@ class App(customtkinter.CTk):
         """
         new_text = self.sentiment_text_var.get()
 
-        # TODO: call sentiment analysis model here
-        positivity = len(new_text) / 20 - 1
+        sentiment: list[dict] = self.sentiment_pipeline(new_text)[0]
+
+        positivity = 0
+
+        for label_score_dict in sentiment:
+            label = label_score_dict["label"]
+            score = label_score_dict["score"]
+
+            if label in self.label_mapping:
+                positivity += self.label_mapping[label] * score
+                print(
+                    f"Label: {label}, Score: {score}, Positivity: {positivity}"
+                )
         positivity = np.clip(positivity, -1, 1)
 
         self.sentiment_image = create_sentiment_image(

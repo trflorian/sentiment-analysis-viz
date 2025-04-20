@@ -93,10 +93,6 @@ class App(customtkinter.CTk):
 
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    def _on_threshold1_change(self, value: float) -> None:
-        """Callback when threshold1 slider changes."""
-        self.threshold1_value = int(value)
-
     def _update_mode(self) -> None:
         """Callback when radio button changes to update local mode."""
         self._current_mode = self.radio_var.get()

@@ -94,7 +94,11 @@ def create_sentiment_image(
 
     # draw the mouth
     cv2.polylines(
-        frame, [ply_points], isClosed=False, color=color_outline, thickness=int(thickness_outline * 1.5)
+        frame,
+        [ply_points],
+        isClosed=False,
+        color=color_outline,
+        thickness=int(thickness_outline * 1.5),
     )
 
     return frame
@@ -165,9 +169,7 @@ class App(customtkinter.CTk):
 
             if label in self.label_mapping:
                 positivity += self.label_mapping[label] * score
-                print(
-                    f"Label: {label}, Score: {score}, Positivity: {positivity}"
-                )
+
         positivity = np.clip(positivity, -1, 1)
 
         self.sentiment_image = create_sentiment_image(

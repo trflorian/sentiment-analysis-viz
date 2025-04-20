@@ -1,6 +1,7 @@
 import logging
 from PIL import Image
 import customtkinter
+import tkinter as tk
 import cv2
 import numpy as np
 
@@ -10,21 +11,44 @@ class CTkImageDisplay(customtkinter.CTkLabel):
     A reusable CustomTkinter Label widget to display opencv images.
     """
 
-    def __init__(self, master: any, width: int, height: int, *args, **kwargs):
+    def __init__(
+        self,
+        master: any,
+        display_size: tuple[int, int],
+        canvas_size: tuple[int, int] | None = None,
+        *args,
+        **kwargs,
+    ):
+        self.logger = logging.getLogger(__name__)
+
         self._textvariable = customtkinter.StringVar(master, "Loading...")
         super().__init__(
             master,
-            width=width,
-            height=height,
+            width=display_size[0],
+            height=display_size[1],
             textvariable=self._textvariable,
             image=None,
             *args,
             **kwargs,
         )
-        self.display_width = width
-        self.display_height = height
 
-        self.logger = logging.getLogger(__name__)
+        self.display_size = display_size
+        self.canvas_size = canvas_size if canvas_size else display_size
+        self.widget_size = (self.winfo_width(), self.winfo_height())
+
+        self.bind("<Configure>", self._on_resize)
+
+    def _on_resize(self, event: tk.Event) -> None:
+        """
+        Handles the resize event of the widget.
+        This method is called when the widget is resized.
+        """
+        self.widget_size = (
+            event.width,
+            event.height,
+        )
+        self.logger.debug(f"Widget resized to: {self.widget_size}")
+        self.update_frame(self._frame)
 
     def clear_frame(self) -> None:
         """
@@ -33,48 +57,46 @@ class CTkImageDisplay(customtkinter.CTkLabel):
         self.configure(image=None, text="")
         self._textvariable.set("")
 
-    def update_frame(self, frame_bgr: np.ndarray) -> None:
+    def update_frame(self, frame: np.ndarray) -> None:
         """
         Updates the displayed image with a new frame using CTkImage.
 
         Args:
             frame_bgr: The new frame to display, in BGR format.
         """
+        self._frame = frame
 
-        ratio_frame = frame_bgr.shape[1] / frame_bgr.shape[0]
-        ratio_target = self.display_width / self.display_height
+        # Calculate the display size
+        frame_width, frame_height = frame.shape[1], frame.shape[0]
+        target_width, target_height = self.display_size
 
-        if ratio_frame != ratio_target:
-            self.logger.warning(
-                f"Aspect ratio mismatch: frame {ratio_frame:.2f} ({frame_bgr.shape[1]}x{frame_bgr.shape[0]}) "
-                f"vs target {ratio_target:.2f} ({self.display_width}x{self.display_height})"
-            )
+        target_width = min(self.widget_size[0], target_width)
+        target_height = min(self.widget_size[1], target_height)
 
-        if ratio_frame > 1:
-            new_width = self.display_width
-            new_height = int(self.display_width / ratio_frame)
+        # make sure to keep the aspect ratio
+        if frame_width > frame_height:
+            target_height = int(frame_height * target_width / frame_width)
         else:
-            new_height = self.display_height
-            new_width = int(self.display_height * ratio_frame)
-
+            target_width = int(frame_width * target_height / frame_height)
+        
+        # Resize the frame to fit the display size
         resized_frame = cv2.resize(
-            frame_bgr,
-            dsize=(new_width, new_height),
+            frame,
+            (target_width, target_height),
             interpolation=cv2.INTER_AREA,
         )
-        resized_frame = resized_frame[
-            (resized_frame.shape[0] - self.display_height) // 2:
-            (resized_frame.shape[0] + self.display_height) // 2,
-            (resized_frame.shape[1] - self.display_width) // 2:
-            (resized_frame.shape[1] + self.display_width) // 2,
-        ]
 
-        frame_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
-        frame_pil = Image.fromarray(frame_rgb)
+        if resized_frame.shape[2] == 4:
+            frame_rgba = cv2.cvtColor(resized_frame, cv2.COLOR_BGRA2RGBA)
+            frame_pil = Image.fromarray(frame_rgba, mode="RGBA")
+        else:
+            frame_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
+            frame_pil = Image.fromarray(frame_rgb, mode="RGB")
+
         ctk_image = customtkinter.CTkImage(
             light_image=frame_pil,
             dark_image=frame_pil,
-            size=(self.display_width, self.display_height),
+            size=(target_width, target_height),
         )
         self.configure(image=ctk_image, text="")
         self._textvariable.set("")

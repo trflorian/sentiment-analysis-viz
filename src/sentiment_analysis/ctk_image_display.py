@@ -1,9 +1,10 @@
 import logging
-from PIL import Image
-import customtkinter
 import tkinter as tk
+
+import customtkinter
 import cv2
 import numpy as np
+from PIL import Image
 
 
 class CTkImageDisplay(customtkinter.CTkLabel):
@@ -13,12 +14,10 @@ class CTkImageDisplay(customtkinter.CTkLabel):
 
     def __init__(
         self,
-        master: any,
+        master: customtkinter.CTk,
         display_size: tuple[int, int],
         canvas_size: tuple[int, int] | None = None,
-        *args,
-        **kwargs,
-    ):
+    ) -> None:
         self.logger = logging.getLogger(__name__)
 
         self._textvariable = customtkinter.StringVar(master, "Loading...")
@@ -28,8 +27,6 @@ class CTkImageDisplay(customtkinter.CTkLabel):
             height=display_size[1],
             textvariable=self._textvariable,
             image=None,
-            *args,
-            **kwargs,
         )
 
         self.display_size = display_size

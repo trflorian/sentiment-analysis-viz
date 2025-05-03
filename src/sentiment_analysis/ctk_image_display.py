@@ -75,7 +75,7 @@ class CTkImageDisplay(customtkinter.CTkLabel):
             target_height = int(frame_height * target_width / frame_width)
         else:
             target_width = int(frame_width * target_height / frame_height)
-        
+
         # Resize the frame to fit the display size
         resized_frame = cv2.resize(
             frame,

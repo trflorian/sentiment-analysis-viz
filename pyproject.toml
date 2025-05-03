@@ -27,4 +27,7 @@ torch = [{ index = "pytorch-cu118" }]
 torchvision = [{ index = "pytorch-cu118" }]
 
 [dependency-groups]
-dev = ["ruff>=0.11.8"]
+dev = [
+    "pytest>=8.3.5",
+    "ruff>=0.11.8",
+]

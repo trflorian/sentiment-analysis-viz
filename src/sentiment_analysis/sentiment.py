@@ -48,9 +48,7 @@ class App(customtkinter.CTk):
         self.textbox.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.textbox.focus()
 
-        self.image_display = CTkImageDisplay(
-            self, display_size=(480, 480), canvas_size=(1024, 1024)
-        )
+        self.image_display = CTkImageDisplay(self, display_size=(480, 480), canvas_size=(1024, 1024))
         self.image_display.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
 
         self.update_sentiment()

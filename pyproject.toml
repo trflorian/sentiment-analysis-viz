@@ -17,6 +17,9 @@ dependencies = [
     "transformers>=4.48.1",
 ]
 
+[project.scripts]
+app = "sentiment_analysis.app:main"
+
 [[tool.uv.index]]
 name = "pytorch-cu118"
 url = "https://download.pytorch.org/whl/cu118"

@@ -27,5 +27,5 @@ The negative label prediction confidence score is multiplied by -1, the neutral 
 ### Setup
 
 ```
-uv run sentiment.py
+uv run app
 ```

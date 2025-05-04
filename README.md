@@ -12,6 +12,12 @@ The specific model used is `cardiffnlp/twitter-roberta-base-sentiment` (https://
 The labels correspond to the classifications *negative*, *neutral* and *positive*. To calculate the final sentiment score in a range of `[-1, 1]`, I simply apply a weighted scaling based on the confidence of each label. 
 The negative label prediction confidence score is multiplied by -1, the neutral one by 0 and the positive score by 1.
 
+## Procedural Smiley
+
+Using linear color interpolation in the HSV color space and a simple parabola for the mouth of the smiley, the face is procedurally generated.
+
+![score_smiley_sketch](https://github.com/user-attachments/assets/4e2dd697-fc68-40c6-b4c1-c67f9661f9e4)
+
 ## Examples
 
 | Positive Sentiment | Negative Sentiment |

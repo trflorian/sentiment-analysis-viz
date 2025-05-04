@@ -56,7 +56,7 @@ def create_sentiment_image(positivity: float, image_size: tuple[int, int]) -> np
     eye_offset_y = radius // 4
     eye_left = (center[0] - eye_offset_x, center[1] - eye_offset_y)
     eye_right = (center[0] + eye_offset_x, center[1] - eye_offset_y)
-    
+
     cv2.circle(frame, eye_left, eye_radius, color_outline, -1)
     cv2.circle(frame, eye_right, eye_radius, color_outline, -1)
 

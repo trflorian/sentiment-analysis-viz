@@ -24,15 +24,11 @@ def sentiment_pipeline() -> SentimentAnalysisPipeline:
         "I am thrilled with the results!",
     ],
 )
-def test_sentiment_analysis_pipeline_positive(
-    sentiment_pipeline: SentimentAnalysisPipeline, text_input: str
-) -> None:
+def test_sentiment_analysis_pipeline_positive(sentiment_pipeline: SentimentAnalysisPipeline, text_input: str) -> None:
     """
     Test the sentiment analysis pipeline with a positive input.
     """
-    assert (
-        sentiment_pipeline.run(text_input) > 0.0
-    ), "Expected positive sentiment score."
+    assert sentiment_pipeline.run(text_input) > 0.0, "Expected positive sentiment score."
 
 
 @pytest.mark.parametrize(
@@ -45,12 +41,8 @@ def test_sentiment_analysis_pipeline_positive(
         "I am disappointed with the results!",
     ],
 )
-def test_sentiment_analysis_pipeline_negative(
-    sentiment_pipeline: SentimentAnalysisPipeline, text_input: str
-) -> None:
+def test_sentiment_analysis_pipeline_negative(sentiment_pipeline: SentimentAnalysisPipeline, text_input: str) -> None:
     """
     Test the sentiment analysis pipeline with a negative input.
     """
-    assert (
-        sentiment_pipeline.run(text_input) < 0.0
-    ), "Expected negative sentiment score."
+    assert sentiment_pipeline.run(text_input) < 0.0, "Expected negative sentiment score."

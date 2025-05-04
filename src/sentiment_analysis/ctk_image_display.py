@@ -1,9 +1,11 @@
 import logging
+import queue
 import tkinter as tk
+from typing import Any
 
 import customtkinter
 import cv2
-import numpy as np
+import numpy.typing as npt
 from PIL import Image
 
 
@@ -14,13 +16,12 @@ class CTkImageDisplay(customtkinter.CTkLabel):
 
     def __init__(
         self,
-        master: customtkinter.CTk,
-        display_size: tuple[int, int],
-        canvas_size: tuple[int, int] | None = None,
+        master: Any,
+        display_size: tuple[int, int] = (1024, 1024),
+        refresh_dt_ms: int = 1000 // 60,
     ) -> None:
-        self.logger = logging.getLogger(__name__)
+        self._textvariable = customtkinter.StringVar(master, "...")
 
-        self._textvariable = customtkinter.StringVar(master, "Loading...")
         super().__init__(
             master,
             width=display_size[0],
@@ -29,52 +30,52 @@ class CTkImageDisplay(customtkinter.CTkLabel):
             image=None,
         )
 
-        self.display_size = display_size
-        self.canvas_size = canvas_size if canvas_size else display_size
-        self.widget_size = (self.winfo_width(), self.winfo_height())
+        self.logger = logging.getLogger(__name__)
 
+        self.display_size = display_size
+        self.widget_size = (
+            self.winfo_width(),
+            self.winfo_height(),
+        )
+        self.refresh_dt_ms = refresh_dt_ms
+
+        self._frame = None
+        self.frame_queue = queue.Queue[npt.NDArray](maxsize=2)
         self.bind("<Configure>", self._on_resize)
 
-    def _on_resize(self, event: tk.Event) -> None:
-        """
-        Handles the resize event of the widget.
-        This method is called when the widget is resized.
-        """
-        self.widget_size = (
-            event.width,
-            event.height,
-        )
-        self.logger.debug(f"Widget resized to: {self.widget_size}")
-        self.update_frame(self._frame)
+        self.after(self.refresh_dt_ms, self._on_refresh)
 
-    def clear_frame(self) -> None:
+    def calculate_target_size(self, frame: npt.NDArray) -> tuple[int, int]:
         """
-        Clears the displayed image and resets the text.
+        Calculate the target size for the image based on the display size and aspect ratio.
         """
-        self.configure(image=None, text="")
-        self._textvariable.set("")
-
-    def update_frame(self, frame: np.ndarray) -> None:
-        """
-        Updates the displayed image with a new frame using CTkImage.
-
-        Args:
-            frame_bgr: The new frame to display, in BGR format.
-        """
-        self._frame = frame
-
-        # Calculate the display size
         frame_width, frame_height = frame.shape[1], frame.shape[0]
-        target_width, target_height = self.display_size
+        target_width, target_height = self.display_size if self.display_size else self.widget_size
 
         target_width = min(self.widget_size[0], target_width)
         target_height = min(self.widget_size[1], target_height)
 
         # make sure to keep the aspect ratio
-        if frame_width > frame_height:
+        if frame_width / frame_height > target_width / target_height:
             target_height = int(frame_height * target_width / frame_width)
         else:
             target_width = int(frame_width * target_height / frame_height)
+
+        return target_width, target_height
+
+    def _set_frame(self, frame: npt.NDArray) -> None:
+        """
+        Set the frame to be displayed in the widget.
+        This method is called when a new frame is available.
+
+        Args:
+            frame: The new frame to display, in BGR format.
+        """
+
+        self._frame = frame
+
+        # Calculate the display size
+        target_width, target_height = self.calculate_target_size(frame)
 
         # Resize the frame to fit the display size
         resized_frame = cv2.resize(
@@ -97,3 +98,44 @@ class CTkImageDisplay(customtkinter.CTkLabel):
         )
         self.configure(image=ctk_image, text="")
         self._textvariable.set("")
+
+    def _on_refresh(self) -> None:
+        """
+        Handles the refresh event of the widget.
+        This method is called periodically to update the displayed image.
+        """
+        # consume full queue
+        frame = None
+        while True:
+            try:
+                frame = self.frame_queue.get_nowait()
+            except queue.Empty:
+                break
+
+        if frame is not None:
+            self._set_frame(frame)
+
+        self.after(self.refresh_dt_ms, self._on_refresh)
+
+    def _on_resize(self, event: tk.Event) -> None:
+        """
+        Handles the resize event of the widget.
+        This method is called when the widget is resized.
+        """
+        self.widget_size = (
+            event.width,
+            event.height,
+        )
+
+        # update the displayed image if available
+        if self._image is not None and self._frame is not None:
+            self._set_frame(self._frame)
+
+    def update_frame(self, frame: npt.NDArray) -> None:
+        """
+        Updates the displayed image with a new frame using CTkImage.
+
+        Args:
+            frame: The new frame to display, in BGR format.
+        """
+        self.frame_queue.put(frame)

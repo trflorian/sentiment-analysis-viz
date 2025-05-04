@@ -1,36 +1,24 @@
-import logging
+from multiprocessing.pool import ThreadPool
 
 import customtkinter
-import numpy as np
-from transformers import pipeline
 
 from sentiment_analysis.ctk_image_display import CTkImageDisplay
+from sentiment_analysis.sentiment_pipeline import SentimentAnalysisPipeline
 from sentiment_analysis.utils import create_sentiment_image
 
 
 class App(customtkinter.CTk):
-    def __init__(self) -> None:
+    def __init__(self, sentiment_analysis_pipeline: SentimentAnalysisPipeline) -> None:
         super().__init__()
-        self.logger = logging.getLogger(__name__)
+        self.sentiment_analysis_pipeline = sentiment_analysis_pipeline
 
         self.title("Sentiment Analysis")
         self.geometry("800x600")
 
-        self.sentiment_pipeline = pipeline(
-            "sentiment-analysis",
-            model="cardiffnlp/twitter-roberta-base-sentiment",
-            device=0,
-            top_k=3,
-        )
-        self.label_mapping = {
-            "LABEL_0": -1,
-            "LABEL_1": 0,
-            "LABEL_2": 1,
-        }
         self.sentiment_image = None
 
         self.sentiment_text_var = customtkinter.StringVar(master=self, value="Love")
-        self.sentiment_text_var.trace_add("write", lambda *_: self.update_sentiment())
+        self.sentiment_text_var.trace_add("write", lambda *_: self.on_sentiment_text_changed())
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=0)
@@ -48,58 +36,51 @@ class App(customtkinter.CTk):
         self.textbox.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.textbox.focus()
 
-        self.image_display = CTkImageDisplay(
-            self, display_size=(480, 480), canvas_size=(1024, 1024)
-        )
+        self.image_display = CTkImageDisplay(self)
         self.image_display.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
 
-        self.update_sentiment()
+        self.update_sentiment_pool = ThreadPool(processes=1)
 
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.on_sentiment_text_changed()
 
-    def update_sentiment(self) -> None:
+    def on_sentiment_text_changed(self) -> None:
         """
         Callback function to handle text changes in the textbox.
         """
         new_text = self.sentiment_text_var.get()
 
-        self.logger.info(f"New text: {new_text}")
+        self.update_sentiment_pool.apply_async(
+            self._update_sentiment,
+            (new_text,),
+        )
 
-        sentiment: list[dict] = self.sentiment_pipeline(new_text)[0]  # type: ignore
+    def _update_sentiment(self, new_text: str) -> None:
+        """
+        Update the sentiment image based on the new text input.
+        This function is run in a separate process to avoid blocking the main thread.
 
-        positivity = 0
-
-        for label_score_dict in sentiment:
-            label = label_score_dict["label"]
-            score = label_score_dict["score"]
-
-            if label in self.label_mapping:
-                positivity += self.label_mapping[label] * score
-
-        positivity = np.clip(positivity, -1, 1)
+        Args:
+            new_text: The new text input from the user.
+        """
+        positivity = self.sentiment_analysis_pipeline.run(new_text)
 
         self.sentiment_image = create_sentiment_image(
             positivity,
-            self.image_display.canvas_size,
+            self.image_display.display_size,
         )
 
         self.image_display.update_frame(self.sentiment_image)
 
-    def on_closing(self) -> None:
-        """Handles window closing event."""
-        self.logger.info("Closing application...")
-
-        self.destroy()
-        self.logger.info("Application closed.")
-
 
 def main() -> None:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
+    # Initialize the sentiment analysis pipeline
+    sentiment_analysis_config = SentimentAnalysisPipeline.Config(
+        model_name="cardiffnlp/twitter-roberta-base-sentiment",
+        label_mapping={"LABEL_0": -1, "LABEL_1": 0, "LABEL_2": 1},
     )
+    sentiment_analysis = SentimentAnalysisPipeline(config=sentiment_analysis_config)
 
-    app = App()
+    app = App(sentiment_analysis)
     app.mainloop()
 
 

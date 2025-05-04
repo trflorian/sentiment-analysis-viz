@@ -6,7 +6,7 @@ import pytest
 
 from sentiment_analysis.utils import create_sentiment_image
 
-IMAGE_SIZE = (100, 100)
+IMAGE_SIZE = (512, 512)
 
 
 @pytest.mark.parametrize(

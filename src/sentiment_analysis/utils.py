@@ -40,30 +40,33 @@ def create_sentiment_image(positivity: float, image_size: tuple[int, int]) -> np
     center = (width // 2, height // 2)
     radius = min(image_size) // 2 - thickness_outline
 
-    color = color_hsv_to_bgr(
+    color_bgr = color_hsv_to_bgr(
         hue=(positivity + 1) / 6,
         saturation=0.5,
         value=1,
     )
+    color_bgra = color_bgr + (255,)
 
-    cv2.circle(frame, center, radius, color + (255,), -1)
+    cv2.circle(frame, center, radius, color_bgra, -1)
     cv2.circle(frame, center, radius, color_outline, thickness_outline)
 
     # calculate the position of the eyes
-    eye_radius = radius // 10
+    eye_radius = radius // 5
     eye_offset_x = radius // 3
     eye_offset_y = radius // 4
     eye_left = (center[0] - eye_offset_x, center[1] - eye_offset_y)
     eye_right = (center[0] + eye_offset_x, center[1] - eye_offset_y)
+    
     cv2.circle(frame, eye_left, eye_radius, color_outline, -1)
     cv2.circle(frame, eye_right, eye_radius, color_outline, -1)
 
     # mouth parameters
-    mouth_radius = radius // 2
-    mouth_offset_y = radius // 4
-    mouth_center_y = center[1] + mouth_offset_y + positivity * mouth_radius // 2
-    mouth_left = (center[0] - mouth_radius, center[1] + mouth_offset_y)
-    mouth_right = (center[0] + mouth_radius, center[1] + mouth_offset_y)
+    mouth_wdith = radius // 2
+    mouth_height = radius // 3
+    mouth_offset_y = radius // 3
+    mouth_center_y = center[1] + mouth_offset_y + positivity * mouth_height // 2
+    mouth_left = (center[0] - mouth_wdith, center[1] + mouth_offset_y)
+    mouth_right = (center[0] + mouth_wdith, center[1] + mouth_offset_y)
 
     # calculate points of polynomial for the mouth
     ply_points_t = np.linspace(-1, 1, 100)
@@ -73,7 +76,7 @@ def create_sentiment_image(positivity: float, image_size: tuple[int, int]) -> np
         [
             (
                 mouth_left[0] + i * (mouth_right[0] - mouth_left[0]) / 100,
-                mouth_center_y - ply_points_y[i] * mouth_radius,
+                mouth_center_y - ply_points_y[i] * mouth_height,
             )
             for i in range(len(ply_points_y))
         ],

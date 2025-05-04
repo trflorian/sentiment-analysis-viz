@@ -75,11 +75,10 @@ class App(customtkinter.CTk):
 
 def main() -> None:
     # Initialize the sentiment analysis pipeline
-    sentiment_analysis_config = SentimentAnalysisPipeline.Config(
+    sentiment_analysis = SentimentAnalysisPipeline(
         model_name="cardiffnlp/twitter-roberta-base-sentiment",
         label_mapping={"LABEL_0": -1, "LABEL_1": 0, "LABEL_2": 1},
     )
-    sentiment_analysis = SentimentAnalysisPipeline(config=sentiment_analysis_config)
 
     app = App(sentiment_analysis)
     app.mainloop()

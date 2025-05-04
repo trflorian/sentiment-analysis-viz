@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 import numpy as np
 from transformers import Pipeline, pipeline
 
@@ -9,22 +7,15 @@ class SentimentAnalysisPipeline:
     A class to handle sentiment analysis using a pre-trained model.
     """
 
-    @dataclass
-    class Config:
-        """
-        Configuration class for the sentiment analysis pipeline.
-        """
-
-        model_name: str
-        label_mapping: dict[str, float]
-
     sentiment_pipeline: Pipeline
 
     def __init__(
         self,
-        config: Config,
+        model_name: str,
+        label_mapping: dict[str, float],
     ) -> None:
-        self.config = config
+        self.model_name = model_name
+        self.label_mapping = label_mapping
 
     def run(self, text: str) -> float:
         """
@@ -37,8 +28,7 @@ class SentimentAnalysisPipeline:
         if not hasattr(self, "sentiment_pipeline"):
             self.sentiment_pipeline = pipeline(
                 task="sentiment-analysis",
-                model=self.config.model_name,
-                device=0,
+                model=self.model_name,
                 top_k=3,
             )
 
@@ -49,7 +39,7 @@ class SentimentAnalysisPipeline:
             label: str = label_score_dict["label"]
             score: float = label_score_dict["score"]
 
-            if label in self.config.label_mapping:
-                positivity += self.config.label_mapping[label] * score
+            if label in self.label_mapping:
+                positivity += self.label_mapping[label] * score
         positivity = np.clip(positivity, -1, 1)
         return positivity

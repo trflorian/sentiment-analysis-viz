@@ -1,5 +1,8 @@
 # Sentiment Analysis
 
+![Python](https://img.shields.io/badge/python-3.13-blue.svg)
+![GitHub License](https://img.shields.io/github/license/trflorian/sentiment-analysis-viz)
+
 ![demo](https://github.com/user-attachments/assets/baf39a9b-2025-4bd6-9ffe-79cc1ce992dd)
 
 This project is a real-time demo of a sentiment analysis visualization with a smiley based on a text input.

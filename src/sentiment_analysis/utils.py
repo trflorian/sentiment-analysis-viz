@@ -15,7 +15,7 @@ def color_hsv_to_bgr(hue: float, saturation: float, value: float) -> tuple[int, 
         A tuple representing the BGR color.
     """
     px_img_hsv = np.array([[[hue * 180, saturation * 255, value * 255]]], dtype=np.uint8)
-    px_img_bgr = cv2.cvtColor(px_img_hsv, cv2.COLOR_HSV2BGR)  # Convert from HSV to BGR
+    px_img_bgr = cv2.cvtColor(px_img_hsv, cv2.COLOR_HSV2BGR)
     b, g, r = px_img_bgr[0][0]
     return int(b), int(g), int(r)
 
@@ -27,17 +27,17 @@ def create_sentiment_image(positivity: float, image_size: tuple[int, int]) -> np
 
     Args:
         positivity: A float representing the positivity score in the range [-1, 1].
+        image_size: A tuple representing the size of the image (width, height).
 
     Returns:
         A string representing the path to the generated sentiment image.
     """
-    frame = np.zeros((image_size[1], image_size[0], 4), dtype=np.uint8)
+    width, height = image_size
+    frame = np.zeros((height, width, 4), dtype=np.uint8)
 
-    color_outline = (80,) * 3 + (255,)  # black
+    color_outline = (80,) * 3 + (255,)  # gray
     thickness_outline = min(image_size) // 30
-
-    # draw a cricle in the center of the image which will be the head of the smiley
-    center = (image_size[0] // 2, image_size[1] // 2)
+    center = (width // 2, height // 2)
     radius = min(image_size) // 2 - thickness_outline
 
     color = color_hsv_to_bgr(

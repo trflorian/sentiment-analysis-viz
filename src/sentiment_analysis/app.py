@@ -34,6 +34,7 @@ class App(customtkinter.CTk):
             textvariable=self.sentiment_text_var,
         )
         self.textbox.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+        self.textbox.select_adjust(len(self.sentiment_text_var.get()))
         self.textbox.focus()
 
         self.image_display = CTkImageDisplay(self)

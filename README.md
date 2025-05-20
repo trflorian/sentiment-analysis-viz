@@ -27,14 +27,35 @@ Using linear color interpolation in the HSV color space and a simple parabola fo
 | -------- | ------- |
 | ![love_is_in_the_air](https://github.com/user-attachments/assets/196b33d0-de47-4f3b-aaad-7d816b622184)  | ![bad weather](https://github.com/user-attachments/assets/d55f4598-065c-4f98-8814-dcd8452a35d5)    |
 
+## Interactive Marimo App
+
+The project includes an interactive web application built with Marimo that provides a user-friendly interface for sentiment analysis. The app features:
+
+- Real-time sentiment analysis as you type
+- Visual representation of sentiment through a dynamic smiley face
+- Color-coded sentiment score display
+- Clean and intuitive user interface
+
+### Running the Marimo App
+
+```bash
+marimo run marimo_app.py
+```
+
 ## Quickstart
 
 ### Prerequisites
 
 - [uv](https://docs.astral.sh/uv/) - Package Manager
+- Python 3.13 or higher
 
 ### Setup
 
 ```
 uv run app
+```
+
+For the Marimo app, with your venv activated:
+```
+marimo run marimo_app.py
 ```

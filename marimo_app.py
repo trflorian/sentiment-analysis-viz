@@ -3,13 +3,20 @@ import marimo
 __generated_with = "0.13.10"
 app = marimo.App(width="medium")
 
-
-@app.cell
-def _():
+with app.setup:
+    import cv2
     import marimo as mo
+    import numpy as np
 
     from sentiment_analysis.sentiment_pipeline import SentimentAnalysisPipeline
     from sentiment_analysis.utils import create_sentiment_image
+
+    model_name = "cardiffnlp/twitter-roberta-base-sentiment"
+    label_mapping = {
+        "LABEL_0": -1,  # Negative
+        "LABEL_1": 0,  # Neutral
+        "LABEL_2": 1,  # Positive
+    }
 
     sentiment_analysis = SentimentAnalysisPipeline(
         model_name="cardiffnlp/twitter-roberta-base-sentiment",
@@ -18,87 +25,95 @@ def _():
 
     text_input = mo.ui.text(
         value="Love",
-        label="Text for sentiment analysis",
+        # label="Text for sentiment analysis",
         placeholder="Enter text here...",
         full_width=True,
         debounce=10,
     )
 
-    def create_image(texto):
-        positivity = sentiment_analysis.run(texto)
+    def process_text(text: str) -> tuple[np.ndarray, float]:
+        """
+        Process the input text and return the sentiment image and score.
+        Args:
+            text (str): The input text to analyze.
+        Returns:
+            tuple: A tuple containing the sentiment image and score.
+            - sentiment_image (np.ndarray): The generated sentiment image.
+            - positivity (float): The sentiment score.
+        """
+        positivity = sentiment_analysis.run(text)
 
         sentiment_image = create_sentiment_image(
-                    positivity,
-                    (224, 224),
-                )
+            positivity=positivity,
+            image_size=(1024, 1024),
+        )
+
+        sentiment_image = cv2.cvtColor(sentiment_image, cv2.COLOR_BGRA2RGBA)
+
         return sentiment_image, positivity
-    return create_image, mo, text_input
 
 
 @app.cell
-def _(create_image, text_input):
-    sentiment_image, positivity = create_image(text_input.value)
-    return positivity, sentiment_image
+def process_text_cell() -> tuple[np.ndarray, float]:
+    sentiment_image, positivity = process_text(text_input.value)
+    return sentiment_image, positivity
 
 
 @app.cell
-def _(mo, positivity, sentiment_image):
-    # Create a color-coded sentiment score display
-    sentiment_color = "green" if positivity > 0 else "red" if positivity < 0 else "gray"
-    sentiment_text = "Positive" if positivity > 0 else "Negative" if positivity < 0 else "Neutral"
-
-    # Create a styled sentiment score card
-    score_card = mo.vstack([
-        mo.md(f"## {sentiment_text}"),
-        mo.md(f"### Score: {positivity:.2f}"),
-    ], align="center", gap=1)
-
-    image_display = mo.vstack([
+def create_image_cell(sentiment_image: np.ndarray, positivity: float) -> tuple[mo.Html]:
+    image_display = mo.lazy(
         mo.image(
             src=sentiment_image,
             alt="Sentiment visualization",
-            width=250,
-            height=250,
+            width=256,
+            height=256,
             rounded=True,
-            caption="Sentiment Results",
-        ),
-        score_card,
-    ], align="center", gap=1)
+            caption=f"Score: {positivity:.2f}",
+        )
+    )
     return (image_display,)
 
 
 @app.cell
-def _(mo):
-    mo.md(
-        """
-    # 🎯 Sentiment Analysis Visualization
-
-    Welcome to our interactive sentiment analysis tool!
-
-    ### How it works:
-    - Enter any text in the input field below
-    - Get an instant sentiment analysis, view a visual representation of the sentiment and see a detailed score from -1 (negative) to 1 (positive)
-    ---
-    """
+def image_display_cell(image_display: mo.Html) -> None:
+    mo.vstack(
+        [
+            mo.md("# Sentiment Analysis Visualization"),
+            mo.callout(
+                mo.vstack(
+                    [
+                        text_input,
+                        image_display,
+                    ],
+                    align="center",
+                    gap=1,
+                )
+            ),
+        ],
+        align="center",
+        gap=1,
     )
-    return
 
 
 @app.cell
-def _(mo, text_input):
-    mo.vstack([
-        mo.md("### ✍️ Enter your text"),
-        text_input
-    ], align="center", gap=1)
-    return
-
-
-@app.cell
-def _(image_display, mo):
-    mo.vstack([
-        image_display
-    ], align="center", gap=1)
-    return
+def about_cell(model_name: str) -> None:
+    mo.accordion(
+        {
+            "Instructions": mo.md(
+                r"""
+                1. Enter any text in the input field below.
+                2. The sentiment score will be calculated and displayed.
+                3. View the visual representation of the sentiment with a dynamic smiley face.
+                """
+            ),
+            "About": mo.md(
+                rf"""
+                This tool uses a pre-trained sentiment analysis model from huggingface ({model_name}) to analyze the sentiment of the text you enter.
+                The project is open-source and available on [GitHub](https://github.com/trflorian/sentiment-analysis-viz).
+                """
+            ),
+        }
+    )
 
 
 if __name__ == "__main__":

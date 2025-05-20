@@ -2,7 +2,7 @@ from multiprocessing.pool import ThreadPool
 
 import customtkinter
 
-from sentiment_analysis.ctk_image_display import CTkImageDisplay
+from sentiment_analysis.ctk.ctk_image_display import CTkImageDisplay
 from sentiment_analysis.sentiment_pipeline import SentimentAnalysisPipeline
 from sentiment_analysis.utils import create_sentiment_image
 

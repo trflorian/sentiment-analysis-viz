@@ -9,17 +9,17 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "customtkinter>=5.2.2",
-    "marimo>=0.13.10",
     "numpy>=2.2.2",
     "opencv-python>=4.11.0.86",
-    "pillow>=11.1.0",
     "torch>=2.5.1",
     "transformers>=4.48.1",
 ]
 
 [project.scripts]
-app = "sentiment_analysis.app:main"
+ctk_app = "sentiment_analysis.ctk.ctk_app:main"
+
+[tool.uv]
+default-groups = "all"
 
 [[tool.uv.index]]
 name = "pytorch-cu118"
@@ -34,4 +34,11 @@ torchvision = [{ index = "pytorch-cu118" }]
 dev = [
     "pytest>=8.3.5",
     "ruff>=0.11.8",
+]
+ctk = [
+    "customtkinter>=5.2.2",
+    "pillow>=11.1.0",
+]
+marimo = [
+    "marimo>=0.13.10",
 ]

@@ -54,7 +54,7 @@ To run the project there are currently two applications available:
 The project includes an interactive web application built with Marimo that provides a user-friendly interface on a webpage. 
 
 ```bash
-uv run marimo run marimo_app.py
+uv run marimo run src/sentiment_analysis/marimo/marimo_app.py
 ```
 
 #### Tkinter Desktop App

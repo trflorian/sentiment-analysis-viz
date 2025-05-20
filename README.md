@@ -1,11 +1,19 @@
-# Sentiment Analysis
+
+<div align="center">
+<h1> 
+
+SENTIMENT ANALYSIS
 
 ![Python](https://img.shields.io/badge/python-3.13-blue.svg)
 ![GitHub License](https://img.shields.io/github/license/trflorian/sentiment-analysis-viz)
 
+</h1>
+
 ![demo](https://github.com/user-attachments/assets/baf39a9b-2025-4bd6-9ffe-79cc1ce992dd)
 
-This project is a real-time demo of a sentiment analysis visualization with a smiley based on a text input.
+</div>
+
+This project showcases a real-time sentiment analysis visualization with a smiley based on a text input.
 The more positive the sentiment of the input is, the happier the smiley looks and vice versa if the sentiment is really negative.
 
 ## How it works
@@ -27,35 +35,32 @@ Using linear color interpolation in the HSV color space and a simple parabola fo
 | -------- | ------- |
 | ![love_is_in_the_air](https://github.com/user-attachments/assets/196b33d0-de47-4f3b-aaad-7d816b622184)  | ![bad weather](https://github.com/user-attachments/assets/d55f4598-065c-4f98-8814-dcd8452a35d5)    |
 
-## Interactive Marimo App
-
-The project includes an interactive web application built with Marimo that provides a user-friendly interface for sentiment analysis. The app features:
-
-- Real-time sentiment analysis as you type
-- Visual representation of sentiment through a dynamic smiley face
-- Color-coded sentiment score display
-- Clean and intuitive user interface
-
-### Running the Marimo App
-
-```bash
-marimo run marimo_app.py
-```
 
 ## Quickstart
 
 ### Prerequisites
 
-- [uv](https://docs.astral.sh/uv/) - Package Manager
-- Python 3.13 or higher
+This project uses [uv](https://docs.astral.sh/uv/) as its package/project manager.
+You can run `uv sync` in the cloned project folder to get all dependencies setup in a local virtual environment specific for this project.
 
-### Setup
+### Run Demo
 
-```
-uv run app
+To run the project there are currently two applications available:
+- An interactve web app using Marimo
+- A desktop application using TKinter
+
+#### Interactive Web App
+
+The project includes an interactive web application built with Marimo that provides a user-friendly interface on a webpage. 
+
+```bash
+uv run marimo run marimo_app.py
 ```
 
-For the Marimo app, with your venv activated:
-```
-marimo run marimo_app.py
+#### Tkinter Desktop App
+
+Make sure that you have all required packages installed for tkinter in order to run the standalone application.
+
+```bash
+uv run ctk_app
 ```

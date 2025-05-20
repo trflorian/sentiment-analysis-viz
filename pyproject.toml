@@ -16,7 +16,10 @@ dependencies = [
 ]
 
 [project.scripts]
-app = "sentiment_analysis.app:main"
+ctk_app = "sentiment_analysis.ctk.ctk_app:main"
+
+[tool.uv]
+default-groups = "all"
 
 [[tool.uv.index]]
 name = "pytorch-cu118"

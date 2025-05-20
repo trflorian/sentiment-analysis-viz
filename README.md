@@ -57,6 +57,9 @@ The project includes an interactive web application built with Marimo that provi
 uv run marimo run src/sentiment_analysis/marimo/marimo_app.py
 ```
 
+![marimo_app](https://github.com/user-attachments/assets/f8b92b65-d26c-4f81-88c3-667a83be720e)
+
+
 #### Tkinter Desktop App
 
 Make sure that you have all required packages installed for tkinter in order to run the standalone application.
@@ -64,3 +67,6 @@ Make sure that you have all required packages installed for tkinter in order to 
 ```bash
 uv run ctk_app
 ```
+
+![ctk](https://github.com/user-attachments/assets/379c2e76-c9c0-4187-b70e-e771dd9487ef)
+
